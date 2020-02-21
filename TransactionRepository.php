@@ -452,5 +452,34 @@ Class TransactionRepository {
             return response()->json(['success' => false, 'data' => [], 'error' => $e->getMessage()]);
         }
     }
-
+    
+    public static function transferToPeerAttorney($param){
+        Stripe::setApiKey(\Yii::$app->params['stripe_secret_key']);
+        try{
+            return Transfer::create(array(
+            "amount" => $param['amount'] * 100,
+            "currency" => "usd",
+            "destination" => $param['account_id'],
+            "transfer_group" => "Transfer From Courtpals case."
+            ));
+        
+        }catch(\Exception $e){
+            return false;
+        }
+    }
+    
+public static function refund($param)
+    {
+        try{
+        Stripe::setApiKey(\Yii::$app->params['stripe_secret_key']);
+        return Refund::create(array(
+            "charge" => $param['charge_id'],
+            "amount" => $param['amount'] * 100
+        ));
+        }catch (\Exception $ex){
+            $transaction = new StripeGateway();
+            $transaction->addError('misc', $ex->getMessage());
+            return $transaction;                    
+        }
+    }
 }
